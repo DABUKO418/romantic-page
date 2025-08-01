@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Fuegos artificiales para mi amor</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .frase {
+      position: absolute;
+      color: white;
+      font-size: 2em;
+      font-weight: bold;
+      z-index: 2;
+      animation: aparecer 3s ease-out forwards;
+    }
+
+    .imagen {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid white;
+      z-index: 2;
+      animation: flotar 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes aparecer {
+      from {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes flotar {
+      from {
+        transform: translateY(0px);
+      }
+      to {
+        transform: translateY(-20px);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="fuegos"></canvas>
+
+<!-- Frases románticas -->
+<div class="frase" style="top: 20%; left: 10%;">Te Amo</div>
+<div class="frase" style="top: 30%; left: 70%;">Eres preciosa</div>
+<div class="frase" style="top: 60%; left: 40%;">Mi amor</div>
+<div class="frase" style="top: 50%; left: 20%;">Amor de mi vida</div>
+
+<!-- Imágenes flotantes -->
+<img src="imagen1.jpg" class="imagen" style="top: 60%; left: 10%;">
+<img src="imagen2.jpg" class="imagen" style="top: 20%; left: 80%;">
+
+<!-- Música romántica -->
+<audio autoplay loop>
+  <source src="musica.mp3" type="audio/mp3">
+</audio>
+
+<script>
+  const canvas = document.getElementById('fuegos');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let fireworks = [];
+
+  function random(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  class Firework {
+    constructor() {
+      this.x = random(0, canvas.width);
+      this.y = canvas.height;
+      this.targetY = random(0, canvas.height / 2);
+      this.color = `hsl(${Math.floor(random(0, 360))}, 100%, 60%)`;
+      this.particles = [];
+      this.exploded = false;
+    }
+
+    update() {
+      if (!this.exploded) {
+        this.y -= 5;
+        if (this.y <= this.targetY) {
+          this.exploded = true;
+          for (let i = 0; i < 100; i++) {
+            this.particles.push(new Particle(this.x, this.y, this.color));
+          }
+        }
+      } else {
+        this.particles.forEach(p => p.update());
+        this.particles = this.particles.filter(p => p.alpha > 0);
+      }
+    }
+
+    draw() {
+      if (!this.exploded) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      } else {
+        this.particles.forEach(p => p.draw());
+      }
+    }
+
+    isDone() {
+      return this.exploded && this.particles.length === 0;
+    }
+  }
+
+  class Particle {
+    constructor(x, y, color) {
+      this.x = x;
+      this.y = y;
+      this.vx = random(-3, 3);
+      this.vy = random(-3, 3);
+      this.alpha = 1;
+      this.color = color;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= 0.02;
+    }
+
+    draw() {
+      ctx.globalAlpha = this.alpha;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function animate() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (Math.random() < 0.05) {
+      fireworks.push(new Firework());
+    }
+
+    fireworks.forEach(f => {
+      f.update();
+      f.draw();
+    });
+
+    fireworks = fireworks.filter(f => !f.isDone());
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
+</body>
+</html>
